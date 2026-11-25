@@ -71,12 +71,12 @@ services:
     restart: unless-stopped
     environment:
       UPDATER_TOKEN: ${UPDATER_TOKEN:-}
-      UPDATER_COMPOSE_FILE: /compose/docker-compose.yml
-      UPDATER_PROJECT_DIR: /compose
+      UPDATER_COMPOSE_FILE: ${COMPOSE_DIR:-.}/docker-compose.yml
+      UPDATER_PROJECT_DIR: ${COMPOSE_DIR:-.}
       UPDATER_ALLOWED_SERVICES: sega,bas-gateway
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - .:/compose:ro
+      - ${COMPOSE_DIR:-.}:${COMPOSE_DIR:-.}:ro
     networks:
       - sega-net
 
