@@ -86,7 +86,7 @@ jobs:
         run: |
           set -euo pipefail
           cd src
-          python3 -m pip install --no-cache-dir -r requirements.txt
+          python3 -m pip install --no-cache-dir -r requirements.txt httpx
           PYTHONPATH=backend python3 -m unittest discover -s backend/tests -v
 
       - name: Resolve GHCR Version
