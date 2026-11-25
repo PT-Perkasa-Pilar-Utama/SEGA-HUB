@@ -6,3 +6,7 @@
 	path = BAS-IoT-Gateway
 	url = git@github.com:PT-Perkasa-Pilar-Utama/BAS-IoT-Gateway.git
 	branch = main
+[submodule "IoT-Gateway-Middleware"]
+	path = IoT-Gateway-Middleware
+	url = git@github.com:PT-Perkasa-Pilar-Utama/IoT-Gateway-Middleware.git
+	branch = main
