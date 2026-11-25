@@ -75,10 +75,11 @@ Each layer has a strict separation of concerns:
 | [`IoT-Gateway-Middleware`](IoT-Gateway-Middleware/) | `PT-Perkasa-Pilar-Utama/IoT-Gateway-Middleware` (`main`) | Edge gateway UI, hierarchy & MQTT bridge | Go + React + SQLite + Docker Compose (`:4173`) |
 | [`modbus-mqtt-converter`](IoT-Gateway-Middleware/modbus-mqtt-converter/) | `PT-Perkasa-Pilar-Utama/modbus-mqtt-converter` (nested submodule) | Headless Modbus2MQTT polling & discovery engine | Python FastAPI UDS sidecar (`/run/modbus-core/core.sock`) |
 | `Zigbee2MQTT` | `ghcr.io/koenkk/zigbee2mqtt:2` (Docker service in `IoT-Gateway-Middleware`) | Zigbee pairing, interview & device control | Docker container + USB/TCP coordinator |
+| [`ESP32C6_ZIGBEE_DEVICE`](IoT-Gateway-Middleware/ESP32C6_ZIGBEE_DEVICE/) | `Muhammad-Yunus/ESP32C6_ZIGBEE_DEVICE` (nested submodule) | ESP32-C6 Zigbee climate & CO₂ end-device firmware | PlatformIO / Arduino (AHT21 + ENS160) |
 
 ## Quick Start (Git Submodules)
 
-Clone the hub along with all submodules (including the nested `modbus-mqtt-converter` submodule):
+Clone the hub along with all submodules (including the nested `modbus-mqtt-converter` and `ESP32C6_ZIGBEE_DEVICE` submodules):
 
 ```bash
 git clone --recurse-submodules git@github.com:PT-Perkasa-Pilar-Utama/SEGA-HUB.git
@@ -97,3 +98,4 @@ For service-specific environment variables, Docker setup, and run instructions, 
 - [BAS-IoT-Gateway Docs](BAS-IoT-Gateway/docs/)
 - [IoT-Gateway-Middleware README](IoT-Gateway-Middleware/README.md)
 - [modbus-mqtt-converter README](IoT-Gateway-Middleware/modbus-mqtt-converter/README.md)
+- [ESP32C6_ZIGBEE_DEVICE README](IoT-Gateway-Middleware/ESP32C6_ZIGBEE_DEVICE/README.md)
