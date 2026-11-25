@@ -1,0 +1,151 @@
+name: SEGA Docker GHCR Release
+
+on:
+  repository_dispatch:
+    types:
+      - sega-release
+      - sega-docker-release
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "SEGA branch, tag, or commit SHA to build"
+        required: false
+        default: "main"
+      version:
+        description: "Optional explicit version override (e.g. v0.1.0)"
+        required: false
+        default: ""
+      bump:
+        description: "Semver bump when auto-incrementing"
+        required: false
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions: {}
+
+concurrency:
+  group: sega-hub-docker-sega
+  cancel-in-progress: false
+
+jobs:
+  validate-and-publish:
+    name: Validate & Publish SEGA GHCR Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Check SEGA Source Token
+        env:
+          SEGA_SOURCE_TOKEN: ${{ secrets.SEGA_SOURCE_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$SEGA_SOURCE_TOKEN" ]; then
+            echo "::error::Missing repository secret SEGA_SOURCE_TOKEN (requires Contents: Read on PT-Perkasa-Pilar-Utama/SEGA)."
+            exit 1
+          fi
+
+      - name: Checkout SEGA-HUB Scripts
+        uses: actions/checkout@v7.0.1
+        with:
+          path: hub
+          persist-credentials: false
+
+      - name: Checkout SEGA Source
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: PT-Perkasa-Pilar-Utama/SEGA
+          ref: ${{ inputs.ref || github.event.client_payload.sha || 'main' }}
+          token: ${{ secrets.SEGA_SOURCE_TOKEN }}
+          path: src
+          persist-credentials: false
+
+      - name: Resolve Source Commit
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(git -C src rev-parse HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$(git -C src rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Web Frontend Check
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd src/web
+          npm ci --prefer-offline --no-audit || npm install
+          npm test
+          npm run build
+
+      - name: Setup Go
+        uses: actions/setup-go@v7.1.0
+        with:
+          go-version: "1.24"
+          cache-dependency-path: src/go.sum
+
+      - name: Backend Vet & Test
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd src
+          CGO_ENABLED=0 go vet ./...
+          CGO_ENABLED=0 go test -count=1 ./internal/...
+
+      - name: Resolve GHCR Version
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 hub/scripts/ci/resolve-ghcr-version.py \
+            --owner "PT-Perkasa-Pilar-Utama" \
+            --package "sega" \
+            --start-version "0.1.0" \
+            --override-version "${{ inputs.version || '' }}" \
+            --bump "${{ inputs.bump || 'patch' }}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.4.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push SEGA Image (linux/amd64)
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: src
+          file: src/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/pt-perkasa-pilar-utama/sega:${{ steps.version.outputs.version }}
+            ghcr.io/pt-perkasa-pilar-utama/sega:latest
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.version }}
+            APP_REVISION=${{ steps.source.outputs.short_sha }}
+          labels: |
+            org.opencontainers.image.title=SEGA
+            org.opencontainers.image.source=https://github.com/PT-Perkasa-Pilar-Utama/SEGA
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.revision=${{ steps.source.outputs.sha }}
+          cache-from: type=gha,scope=sega-docker
+          cache-to: type=gha,mode=max,scope=sega-docker

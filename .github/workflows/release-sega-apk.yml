@@ -1,9 +1,6 @@
-name: SEGA Production Release
+name: SEGA Android APK Release
 
 on:
-  repository_dispatch:
-    types:
-      - sega-release
   workflow_dispatch:
     inputs:
       ref:
@@ -14,7 +11,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: sega-hub-production-release
+  group: sega-hub-apk-release
   cancel-in-progress: false
 
 jobs:
@@ -39,7 +36,7 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           repository: PT-Perkasa-Pilar-Utama/SEGA
-          ref: ${{ inputs.ref || github.event.client_payload.sha || 'main' }}
+          ref: ${{ inputs.ref || 'main' }}
           token: ${{ secrets.SEGA_SOURCE_TOKEN }}
           persist-credentials: false
 
@@ -104,7 +101,7 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           repository: PT-Perkasa-Pilar-Utama/SEGA
-          ref: ${{ inputs.ref || github.event.client_payload.sha || 'main' }}
+          ref: ${{ inputs.ref || 'main' }}
           token: ${{ secrets.SEGA_SOURCE_TOKEN }}
           fetch-depth: 0
           persist-credentials: false

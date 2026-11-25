@@ -1,19 +1,17 @@
-name: sega-hub
-
 services:
   postgres:
-    image: postgres:17-alpine
-    container_name: sega_hub_postgres
+    image: postgres:16-alpine
+    container_name: sega-hub-postgres
     profiles: ["local-db"]
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-sega}
-      POSTGRES_USER: ${POSTGRES_USER:-sega_app}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_USER: ${POSTGRES_USER:-sega}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sega_local_dev}
     volumes:
-      - sega_pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sega_app} -d ${POSTGRES_DB:-sega}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sega} -d ${POSTGRES_DB:-sega}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,58 +19,80 @@ services:
       - sega-net
 
   bas-gateway:
-    build: ./BAS-IoT-Gateway
-    image: bas-iot-gateway:local
-    container_name: sega_bas_gateway
+    image: ghcr.io/pt-perkasa-pilar-utama/bas-iot-gateway:${BAS_GATEWAY_IMAGE_TAG:-latest}
+    build:
+      context: ./BAS-IoT-Gateway
+      dockerfile: Dockerfile
+    container_name: sega-hub-bas-gateway
     restart: unless-stopped
-    init: true
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "${BAS_PORT:-8000}:8000"
-    env_file:
-      - ./BAS-IoT-Gateway/.env
     environment:
-      TZ: ${TZ:-Asia/Jakarta}
-      API_HOST: 0.0.0.0
-      API_PORT: 8000
-      SQLITE_DB_PATH: /app/data/bas_system.db
-      SEGA_API_URL: http://sega:${SEGA_PORT:-8080}
+      BAS_PORT: "8000"
+      BAS_DB_PATH: /app/data/gateway.db
+      MQTT_BROKER_HOST: ${MQTT_BROKER_HOST:-host.docker.internal}
+      MQTT_BROKER_PORT: ${MQTT_BROKER_PORT:-1883}
+      SEGA_BASE_URL: http://sega:8080
+      SEGA_GATEWAY_TOKEN: ${SEGA_GATEWAY_TOKEN:-}
+      BAS_UPDATER_URL: http://updater:8090
+      BAS_UPDATER_TOKEN: ${UPDATER_TOKEN:-}
+    ports:
+      - "${BAS_GATEWAY_HOST_PORT:-8000}:8000"
     volumes:
-      - ./BAS-IoT-Gateway/data:/app/data
+      - bas_gateway_data:/app/data
     networks:
       - sega-net
 
   sega:
-    build: ./SEGA
-    image: sega:local
-    container_name: sega_app
+    image: ghcr.io/pt-perkasa-pilar-utama/sega:${SEGA_IMAGE_TAG:-latest}
+    build:
+      context: ./SEGA
+      dockerfile: Dockerfile
+    container_name: sega-hub-app
     restart: unless-stopped
-    init: true
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    tmpfs:
-      - /tmp
-    ports:
-      - "${SEGA_PORT:-8080}:${SEGA_PORT:-8080}"
-    env_file:
-      - ./SEGA/.env
     environment:
-      TZ: ${TZ:-Asia/Jakarta}
-      PORT: ${SEGA_PORT:-8080}
-      SEGA_IOT_GATEWAY_URL: http://bas-gateway:8000
+      PORT: "8080"
+      WEB_DIST_DIR: /app/web/dist
+      DATABASE_URL: ${DATABASE_URL:-postgres://sega:sega_local_dev@postgres:5432/sega?sslmode=disable}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      AUTH_DISABLED: ${AUTH_DISABLED:-false}
+      DEV_OPEN_ACCESS: ${DEV_OPEN_ACCESS:-false}
+      SEGA_CORS_ALLOWED_ORIGINS: ${SEGA_CORS_ALLOWED_ORIGINS:-http://localhost:8081}
+      SEGA_GATEWAY_TOKEN: ${SEGA_GATEWAY_TOKEN:-}
+      SEGA_UPDATER_URL: http://updater:8090
+      SEGA_UPDATER_TOKEN: ${UPDATER_TOKEN:-}
+      CODEX_PATH: /usr/local/bin/codex
+      CODEX_WORKDIR: /app/work
+      HOME: /app/work/cli-home
+    ports:
+      - "${SEGA_HOST_PORT:-8081}:8080"
     volumes:
-      - ./SEGA/work:/app/work
-    depends_on:
-      bas-gateway:
-        condition: service_healthy
+      - sega_work:/app/work
+      - ${CODEX_HOST_DIR:-./.codex-home}:/app/work/cli-home/.codex
     networks:
       - sega-net
+
+  updater:
+    build:
+      context: ./updater
+      dockerfile: Dockerfile
+    container_name: sega-hub-updater
+    profiles: ["updater"]
+    restart: unless-stopped
+    environment:
+      UPDATER_TOKEN: ${UPDATER_TOKEN:-}
+      UPDATER_COMPOSE_FILE: /compose/docker-compose.yml
+      UPDATER_PROJECT_DIR: /compose
+      UPDATER_ALLOWED_SERVICES: sega,bas-gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/compose:ro
+    networks:
+      - sega-net
+
+volumes:
+  postgres_data:
+  bas_gateway_data:
+  sega_work:
 
 networks:
   sega-net:
     driver: bridge
-
-volumes:
-  sega_pgdata:
