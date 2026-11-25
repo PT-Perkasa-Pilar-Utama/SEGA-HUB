@@ -3,7 +3,7 @@ services:
     image: timescale/timescaledb-ha:pg16
     container_name: sega-hub-postgres
     profiles: ["local-db"]
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-sega}
       POSTGRES_USER: ${POSTGRES_USER:-sega}
@@ -21,7 +21,7 @@ services:
   bas-gateway:
     image: ghcr.io/pt-perkasa-pilar-utama/bas-iot-gateway:${BAS_GATEWAY_IMAGE_TAG:-latest}
     container_name: sega-hub-bas-gateway
-    restart: unless-stopped
+    restart: always
     environment:
       BAS_PORT: "8000"
       BAS_DB_PATH: /app/data/gateway.db
@@ -41,7 +41,7 @@ services:
   sega:
     image: ghcr.io/pt-perkasa-pilar-utama/sega:${SEGA_IMAGE_TAG:-latest}
     container_name: sega-hub-app
-    restart: unless-stopped
+    restart: always
     environment:
       PORT: "8080"
       WEB_DIST_DIR: /app/web/dist
@@ -68,7 +68,7 @@ services:
     image: ghcr.io/pt-perkasa-pilar-utama/sega-updater:${UPDATER_IMAGE_TAG:-latest}
     container_name: sega-hub-updater
     profiles: ["updater"]
-    restart: unless-stopped
+    restart: always
     environment:
       UPDATER_TOKEN: ${UPDATER_TOKEN:-}
       UPDATER_COMPOSE_FILE: ${COMPOSE_DIR:-.}/docker-compose.yml
