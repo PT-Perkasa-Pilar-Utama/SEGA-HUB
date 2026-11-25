@@ -2,7 +2,7 @@
 	path = SEGA
 	url = git@github.com:PT-Perkasa-Pilar-Utama/SEGA.git
 	branch = main
-[submodule "bas-dashboard"]
-	path = bas-dashboard
+[submodule "BAS-IoT-Gateway"]
+	path = BAS-IoT-Gateway
 	url = git@github.com:PT-Perkasa-Pilar-Utama/BAS-IoT-Gateway.git
 	branch = main
