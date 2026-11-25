@@ -1,0 +1,4 @@
+[submodule "SEGA"]
+	path = SEGA
+	url = git@github.com:PT-Perkasa-Pilar-Utama/SEGA.git
+	branch = main
