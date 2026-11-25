@@ -30,11 +30,11 @@ flowchart LR
 
 | Module | Repository | Role |
 | --- | --- | --- |
-| [`SEGA`](SEGA/) | `PT-Perkasa-Pilar-Utama/SEGA` | Web/Android app & API |
-| [`BAS-IoT-Gateway`](BAS-IoT-Gateway/) | `PT-Perkasa-Pilar-Utama/BAS-IoT-Gateway` | Cloud IoT gateway |
-| [`IoT-Gateway-Middleware`](IoT-Gateway-Middleware/) | `PT-Perkasa-Pilar-Utama/IoT-Gateway-Middleware` | Edge gateway middleware |
-| [`modbus-mqtt-converter`](IoT-Gateway-Middleware/modbus-mqtt-converter/) | `PT-Perkasa-Pilar-Utama/modbus-mqtt-converter` | Modbus2MQTT engine (nested) |
-| [`ESP32C6_ZIGBEE_DEVICE`](IoT-Gateway-Middleware/ESP32C6_ZIGBEE_DEVICE/) | `Muhammad-Yunus/ESP32C6_ZIGBEE_DEVICE` | ESP32-C6 Zigbee firmware (nested) |
+| [`SEGA`](https://github.com/PT-Perkasa-Pilar-Utama/SEGA) | [PT-Perkasa-Pilar-Utama/SEGA](https://github.com/PT-Perkasa-Pilar-Utama/SEGA) | Web/Android app & API |
+| [`BAS-IoT-Gateway`](https://github.com/PT-Perkasa-Pilar-Utama/BAS-IoT-Gateway) | [PT-Perkasa-Pilar-Utama/BAS-IoT-Gateway](https://github.com/PT-Perkasa-Pilar-Utama/BAS-IoT-Gateway) | Cloud IoT gateway |
+| [`IoT-Gateway-Middleware`](https://github.com/PT-Perkasa-Pilar-Utama/IoT-Gateway-Middleware) | [PT-Perkasa-Pilar-Utama/IoT-Gateway-Middleware](https://github.com/PT-Perkasa-Pilar-Utama/IoT-Gateway-Middleware) | Edge gateway middleware |
+| [`modbus-mqtt-converter`](https://github.com/PT-Perkasa-Pilar-Utama/modbus-mqtt-converter) | [PT-Perkasa-Pilar-Utama/modbus-mqtt-converter](https://github.com/PT-Perkasa-Pilar-Utama/modbus-mqtt-converter) | Modbus2MQTT engine (nested) |
+| [`ESP32C6_ZIGBEE_DEVICE`](https://github.com/Muhammad-Yunus/ESP32C6_ZIGBEE_DEVICE) | [Muhammad-Yunus/ESP32C6_ZIGBEE_DEVICE](https://github.com/Muhammad-Yunus/ESP32C6_ZIGBEE_DEVICE) | ESP32-C6 Zigbee firmware (nested) |
 
 ## Quick Start
 
