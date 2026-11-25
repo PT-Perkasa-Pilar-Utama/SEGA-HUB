@@ -71,6 +71,7 @@ services:
       - sega-net
 
   updater:
+    image: ghcr.io/pt-perkasa-pilar-utama/sega-updater:${UPDATER_IMAGE_TAG:-latest}
     build:
       context: ./updater
       dockerfile: Dockerfile
