@@ -1,0 +1,78 @@
+name: sega-hub
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: sega_hub_postgres
+    profiles: ["local-db"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sega}
+      POSTGRES_USER: ${POSTGRES_USER:-sega_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - sega_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sega_app} -d ${POSTGRES_DB:-sega}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sega-net
+
+  bas-gateway:
+    build: ./BAS-IoT-Gateway
+    image: bas-iot-gateway:local
+    container_name: sega_bas_gateway
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${BAS_PORT:-8000}:8000"
+    env_file:
+      - ./BAS-IoT-Gateway/.env
+    environment:
+      TZ: ${TZ:-Asia/Jakarta}
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      SQLITE_DB_PATH: /app/data/bas_system.db
+      SEGA_API_URL: http://sega:${SEGA_PORT:-8080}
+    volumes:
+      - ./BAS-IoT-Gateway/data:/app/data
+    networks:
+      - sega-net
+
+  sega:
+    build: ./SEGA
+    image: sega:local
+    container_name: sega_app
+    restart: unless-stopped
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    ports:
+      - "${SEGA_PORT:-8080}:${SEGA_PORT:-8080}"
+    env_file:
+      - ./SEGA/.env
+    environment:
+      TZ: ${TZ:-Asia/Jakarta}
+      PORT: ${SEGA_PORT:-8080}
+      SEGA_IOT_GATEWAY_URL: http://bas-gateway:8000
+    volumes:
+      - ./SEGA/work:/app/work
+    depends_on:
+      bas-gateway:
+        condition: service_healthy
+    networks:
+      - sega-net
+
+networks:
+  sega-net:
+    driver: bridge
+
+volumes:
+  sega_pgdata:
