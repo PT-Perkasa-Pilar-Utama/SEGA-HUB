@@ -7,6 +7,10 @@ on:
         description: "SEGA branch, tag, or commit SHA to build"
         required: false
         default: "main"
+      server_url:
+        description: "Backend server URL for Android Capacitor app"
+        required: false
+        default: "https://sega.devoutsys.com"
 
 permissions: {}
 
@@ -143,6 +147,8 @@ jobs:
 
       - name: Build Web Assets & Sync Capacitor Android
         if: steps.version.outputs.already_published != 'true'
+        env:
+          CAPACITOR_SERVER_URL: ${{ inputs.server_url || vars.ANDROID_SERVER_URL || 'https://sega.devoutsys.com' }}
         shell: bash
         run: |
           set -euo pipefail
